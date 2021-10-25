@@ -11,14 +11,15 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-class KafkaService<T> implements Closeable {
+public class KafkaService<T> implements Closeable {
 
     private final ConsumerFunction parse;
     private final KafkaConsumer<String, T> consumer;
 
-    KafkaService(String groupId, String topic, ConsumerFunction parse, Class<T> type, Map<String, String> customProperties) {
+    public KafkaService(String groupId, String topic, ConsumerFunction parse, Class<T> type, Map<String, String> customProperties) {
         this(groupId, parse, type, customProperties);
         consumer.subscribe(Collections.singletonList(topic));
     }
@@ -33,13 +34,17 @@ class KafkaService<T> implements Closeable {
         this.consumer = new KafkaConsumer<>(this.properties(groupId, type, customProperties));
     }
 
-    void run() {
+    public void run() {
         while (true) {
             var records = consumer.poll(Duration.ofMillis(100));
             if (!records.isEmpty()) {
                 System.out.println("Encontrei " + records.count() + " registros");
                 for (var record : records) {
-                    parse.consume(record);
+                    try {
+                        parse.consume(record);
+                    } catch (Exception e) {
+                        System.out.println("Erro on consuming the message");
+                    }
                 }
             }
         }

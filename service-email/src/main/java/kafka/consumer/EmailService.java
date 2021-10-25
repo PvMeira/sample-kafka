@@ -24,14 +24,6 @@ public class EmailService implements Service<Email> {
         System.out.println("------------------------------------------");
         System.out.println("Send email");
         System.out.println(record.key());
-        System.out.println(record.value().getRecipient());
-        System.out.println(record.partition());
-        System.out.println(record.offset());
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         System.out.println("Email sent");
         System.out.println("------------------------------------------");
     }
