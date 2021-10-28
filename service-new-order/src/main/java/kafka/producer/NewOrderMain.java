@@ -1,6 +1,5 @@
 package kafka.producer;
 
-import json.Email;
 import json.Order;
 import kafka.dto.CorrelationID;
 
@@ -13,7 +12,6 @@ public class NewOrderMain {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
         try (var orderDispatcher = new KafkaDispatcher<Order>()) {
-            try (var emailDispatcher = new KafkaDispatcher<Email>()) {
                 for (int i = 0; i < 10; i++) {
                     String email =Math.random() + "%d@teste.com";
                     orderDispatcher.send("ECOMMERCE_NEW_ORDER"
@@ -22,9 +20,7 @@ public class NewOrderMain {
                                     , email
                                     , BigDecimal.valueOf(Math.random() * 5000 + 1))
                     , new CorrelationID(NewOrderMain.class.getSimpleName()));
-                    emailDispatcher.send("ECOMMERCE_SEND_EMAIL", email, new Email("teste@teste.com", "this is the body")
-                            , new CorrelationID(NewOrderMain.class.getSimpleName()));
-                }
+
             }
         }
     }

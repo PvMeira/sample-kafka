@@ -7,17 +7,10 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-public class EmailService implements Service<Message<Email>> {
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        var emailService = new EmailService();
-        try (var service = new KafkaService<>(  EmailService.class.getSimpleName(),
-                                        "ECOMMERCE_SEND_EMAIL",
-                                              emailService::parse,
-                Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName()))) {
-            service.run();
-        }
+public class EmailServiceConsumer implements ServiceConsumer<Email> {
+    public static void main(String[] args) {
+        new ServiceRunner(EmailServiceConsumer::new).start(5);
     }
 
     @Override
@@ -27,5 +20,20 @@ public class EmailService implements Service<Message<Email>> {
         System.out.println(record.key());
         System.out.println("Email sent");
         System.out.println("------------------------------------------");
+    }
+
+    @Override
+    public String getTopic() {
+        return "ECOMMERCE_SEND_EMAIL";
+    }
+
+    @Override
+    public String getConsumerGroup() {
+        return EmailServiceConsumer.class.getSimpleName();
+    }
+
+    @Override
+    public Map getCustomProperties() {
+        return Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName());
     }
 }

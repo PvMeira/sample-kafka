@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
-public class LogService implements Service<Message<String>> {
+public class LogServiceConsumer {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        var logService = new LogService();
-        try (var service = new KafkaService<>(LogService.class.getSimpleName(),
+        var logService = new LogServiceConsumer();
+        try (var service = new KafkaService<>(LogServiceConsumer.class.getSimpleName(),
                 Pattern.compile("ECOMMERCE.*"),
                 logService::parse,
                 Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName()))) {
@@ -22,7 +22,6 @@ public class LogService implements Service<Message<String>> {
 
     }
 
-    @Override
     public void parse(ConsumerRecord<String, Message<String>> record) {
         System.out.println("------------------------------------------");
         System.out.println("LOG: " + record.topic());

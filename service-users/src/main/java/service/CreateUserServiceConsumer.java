@@ -1,40 +1,30 @@
 package service;
 
+import br.com.pvmeira.database.LocalDataBase;
 import json.Order;
-import kafka.consumer.KafkaService;
-import kafka.consumer.Service;
+import kafka.consumer.ServiceConsumer;
+import kafka.consumer.ServiceRunner;
 import kafka.desserializar.GsonDeserializer;
 import kafka.dto.Message;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-public class CreateUserService implements Service<Message<Order>> {
+public class CreateUserServiceConsumer implements ServiceConsumer<Order> {
 
-    private final Connection connection;
-    public CreateUserService() throws SQLException {
-        this.connection = DriverManager.getConnection("jdbc:sqlite:service-users/target/users_database.db");
-        try{
-            connection.createStatement().execute("create table Users (uuid varchar(200) primary key, email varchar (200))");
-        }catch (SQLException e) {
-            e.printStackTrace();
-        }
+    private final LocalDataBase dataBase;
+
+    CreateUserServiceConsumer() throws SQLException {
+        this.dataBase = new LocalDataBase("users_database");
+        this.dataBase.createIfNotExists("create table Users (uuid varchar(200) primary key, email varchar (200))");
     }
 
-    public static void main(String[] args) throws SQLException, ExecutionException, InterruptedException {
-        var createUserDetectorService = new CreateUserService();
-        try (var service = new KafkaService<>(  CreateUserService.class.getSimpleName(),
-                "ECOMMERCE_NEW_ORDER",
-                createUserDetectorService::parse,
-                Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName()))) {
-            service.run();
-        }
+    public static void main(String[] args) {
+        new ServiceRunner<>(CreateUserServiceConsumer::new).start(1);
     }
 
     @Override
@@ -49,8 +39,23 @@ public class CreateUserService implements Service<Message<Order>> {
         System.out.println("------------------------------------------");
     }
 
+    @Override
+    public String getTopic() {
+        return "ECOMMERCE_NEW_ORDER";
+    }
+
+    @Override
+    public String getConsumerGroup() {
+        return CreateUserServiceConsumer.class.getSimpleName();
+    }
+
+    @Override
+    public Map getCustomProperties() {
+        return Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName());
+    }
+
     public boolean isNew(String email) throws SQLException {
-        var statement = connection.prepareStatement("select uuid from Users " +
+        var statement = this.dataBase.preparedStatement("select uuid from Users " +
                 "where email = ? limit 1");
         statement.setString(1, email);
         var results = statement.executeQuery();
@@ -58,7 +63,7 @@ public class CreateUserService implements Service<Message<Order>> {
     }
 
     public void insertNew(String email) throws SQLException {
-        var statement = connection.prepareStatement("insert into Users (uuid, email) " +
+        var statement = this.dataBase.preparedStatement("insert into Users (uuid, email) " +
                 "values (?,?)");
         statement.setString(1, UUID.randomUUID().toString());
         statement.setString(2, email);

@@ -16,10 +16,9 @@ import java.util.concurrent.ExecutionException;
 public class NewOrderServlet extends HttpServlet implements Servlet {
 
     private final KafkaDispatcher<Order> orderDispatcher = new KafkaDispatcher<>();
-    private final KafkaDispatcher<Email> emailDispatcher = new KafkaDispatcher<>();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws  ServletException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
         try {
             var email = req.getParameter("email");
             var value = req.getParameter("value");
@@ -28,10 +27,6 @@ public class NewOrderServlet extends HttpServlet implements Servlet {
                     , new Order(UUID.randomUUID().toString()
                             , email
                             , new BigDecimal(value)),
-                    new CorrelationID(NewOrderServlet.class.getSimpleName()));
-            emailDispatcher.send("ECOMMERCE_SEND_EMAIL", email
-                    , new Email("teste@teste.com"
-                            , "Dear customer you order was received in our systems"),
                     new CorrelationID(NewOrderServlet.class.getSimpleName()));
             System.out.println("New Order was successfully");
             resp.getWriter().println("New Order was successfully posted");
@@ -47,7 +42,6 @@ public class NewOrderServlet extends HttpServlet implements Servlet {
         super.destroy();
         try {
             orderDispatcher.close();
-            emailDispatcher.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

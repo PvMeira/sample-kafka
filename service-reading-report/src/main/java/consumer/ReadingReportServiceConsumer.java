@@ -1,8 +1,8 @@
 package consumer;
 
 import json.User;
-import kafka.consumer.KafkaService;
-import kafka.consumer.Service;
+import kafka.consumer.ServiceRunner;
+import kafka.consumer.ServiceConsumer;
 import kafka.desserializar.GsonDeserializer;
 import kafka.dto.Message;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -14,19 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-public class ReadingReportService implements Service<Message<User>> {
+public class ReadingReportServiceConsumer implements ServiceConsumer<User> {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        var serviceSelf = new ReadingReportService();
-        try (var service = new KafkaService<>(ReadingReportService.class.getSimpleName(),
-                "ECOMMERCE_USER_GENERATE_READING_REPORT",
-                serviceSelf::parse,
-                Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName()))) {
-            service.run();
-        }
-
+    public static void main(String[] args) {
+       new ServiceRunner<>(ReadingReportServiceConsumer::new).start(1);
     }
 
     @Override
@@ -46,5 +38,20 @@ public class ReadingReportService implements Service<Message<User>> {
         }
         System.out.println("File Created on : " + target.getAbsolutePath());
         System.out.println("------------------------------------------");
+    }
+
+    @Override
+    public String getTopic() {
+        return "ECOMMERCE_USER_GENERATE_READING_REPORT";
+    }
+
+    @Override
+    public String getConsumerGroup() {
+        return ReadingReportServiceConsumer.class.getSimpleName();
+    }
+
+    @Override
+    public Map getCustomProperties() {
+        return Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName());
     }
 }
