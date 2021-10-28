@@ -1,6 +1,0 @@
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/desserializar/GsonDeserializer.java
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/consumer/ConsumerFunction.java
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/producer/KafkaDispatcher.java
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/consumer/Service.java
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/consumer/KafkaService.java
-/Users/pvmeira/IdeaProjects/ecomerce/service-kafka-core/src/main/java/kafka/serializer/GsonCustomSerializer.java
