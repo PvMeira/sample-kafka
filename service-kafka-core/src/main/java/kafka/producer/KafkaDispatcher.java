@@ -1,26 +1,34 @@
 package kafka.producer;
 
+import kafka.dto.CorrelationID;
+import kafka.dto.Message;
 import kafka.serializer.GsonCustomSerializer;
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class KafkaDispatcher<T> implements Closeable {
-    private final KafkaProducer<String, T> dispatcher;
+    private final KafkaProducer<String, Message<T>> dispatcher;
 
     public KafkaDispatcher() {
         this.dispatcher = new KafkaProducer<>(properties());
     }
 
-    public void send(String topic, String key, T value) throws ExecutionException, InterruptedException {
-        this.dispatcher.send(new ProducerRecord<>(topic, key,value), handleCallbackRecord()).get();
+    public void send(String topic, String key, T value, CorrelationID id) throws ExecutionException, InterruptedException {
+        var future = sendAsync(topic,key, value, id);
+        future.get();
+    }
+
+    public Future<RecordMetadata> sendAsync(String topic, String key, T value, CorrelationID id) {
+        var payload = new Message<>(id.continueWithId("__" + topic), value);
+        var record = new ProducerRecord<>(topic, key, payload);
+        System.out.println("Sending Message with ID : " + id);
+        return this.dispatcher.send(record, handleCallbackRecord());
     }
 
     private static Callback handleCallbackRecord() {

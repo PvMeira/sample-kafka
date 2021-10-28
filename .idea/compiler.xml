@@ -9,6 +9,7 @@
         <module name="service-log" />
         <module name="service-http-ecommerce" />
         <module name="service-new-order" />
+        <module name="service-rea" />
         <module name="service-fraud-detector" />
         <module name="service-kafka-core" />
         <module name="service-email" />

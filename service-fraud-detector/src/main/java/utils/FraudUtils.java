@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class FraudUtils {
 
-    public static boolean isSuspectedOrder(ConsumerRecord<String, Order> record) {
-        return record.value().getAmount().compareTo(new BigDecimal("4500")) >= 0;
+    public static boolean isSuspectedOrder(Order record) {
+        return record.getAmount().compareTo(new BigDecimal("4500")) >= 0;
     }
 }

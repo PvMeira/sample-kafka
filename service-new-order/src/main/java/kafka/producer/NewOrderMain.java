@@ -2,6 +2,7 @@ package kafka.producer;
 
 import json.Email;
 import json.Order;
+import kafka.dto.CorrelationID;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -19,8 +20,10 @@ public class NewOrderMain {
                             , email
                             , new Order(UUID.randomUUID().toString()
                                     , email
-                                    , BigDecimal.valueOf(Math.random() * 5000 + 1)));
-                    emailDispatcher.send("ECOMMERCE_SEND_EMAIL", email, new Email("teste@teste.com", "this is the body"));
+                                    , BigDecimal.valueOf(Math.random() * 5000 + 1))
+                    , new CorrelationID(NewOrderMain.class.getSimpleName()));
+                    emailDispatcher.send("ECOMMERCE_SEND_EMAIL", email, new Email("teste@teste.com", "this is the body")
+                            , new CorrelationID(NewOrderMain.class.getSimpleName()));
                 }
             }
         }

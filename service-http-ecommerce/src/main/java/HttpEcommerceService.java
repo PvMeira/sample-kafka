@@ -11,6 +11,7 @@ public class HttpEcommerceService {
         var context = new ServletContextHandler();
         context.setContextPath("/");
         context.addServlet(new ServletHolder(new NewOrderServlet()), "/order/new");
+        context.addServlet(new ServletHolder(new GenerateAllReportServlet()), "/admin/report/generate/all");
 
         server.setHandler(context);
 

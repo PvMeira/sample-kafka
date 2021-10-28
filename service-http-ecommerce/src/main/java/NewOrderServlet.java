@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import json.Email;
 import json.Order;
+import kafka.dto.CorrelationID;
 import kafka.producer.KafkaDispatcher;
 import org.eclipse.jetty.servlet.Source;
 
@@ -26,10 +27,12 @@ public class NewOrderServlet extends HttpServlet implements Servlet {
                     , email
                     , new Order(UUID.randomUUID().toString()
                             , email
-                            , new BigDecimal(value)));
+                            , new BigDecimal(value)),
+                    new CorrelationID(NewOrderServlet.class.getSimpleName()));
             emailDispatcher.send("ECOMMERCE_SEND_EMAIL", email
                     , new Email("teste@teste.com"
-                            , "Dear customer you order was received in our systems"));
+                            , "Dear customer you order was received in our systems"),
+                    new CorrelationID(NewOrderServlet.class.getSimpleName()));
             System.out.println("New Order was successfully");
             resp.getWriter().println("New Order was successfully posted");
         } catch (Exception e) {

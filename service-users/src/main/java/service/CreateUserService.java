@@ -4,6 +4,7 @@ import json.Order;
 import kafka.consumer.KafkaService;
 import kafka.consumer.Service;
 import kafka.desserializar.GsonDeserializer;
+import kafka.dto.Message;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-public class CreateUserService implements Service<Order> {
+public class CreateUserService implements Service<Message<Order>> {
 
     private final Connection connection;
     public CreateUserService() throws SQLException {
@@ -26,25 +27,24 @@ public class CreateUserService implements Service<Order> {
         }
     }
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) throws SQLException, ExecutionException, InterruptedException {
         var createUserDetectorService = new CreateUserService();
         try (var service = new KafkaService<>(  CreateUserService.class.getSimpleName(),
                 "ECOMMERCE_NEW_ORDER",
                 createUserDetectorService::parse,
-                Order.class,
                 Map.of(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GsonDeserializer.class.getName()))) {
             service.run();
         }
     }
 
     @Override
-    public void parse(ConsumerRecord<String, Order> record) throws ExecutionException, InterruptedException, SQLException {
+    public void parse(ConsumerRecord<String, Message<Order>> record) throws ExecutionException, InterruptedException, SQLException {
         System.out.println("------------------------------------------");
         System.out.println("Processing order");
         System.out.println(record.key());
-        System.out.println("Order ID for this request was : ".concat(record.value().getOrderId()));
-        if (isNew(record.value().getEmail())){
-            this.insertNew(record.value().getEmail());
+        System.out.println("Order ID for this request was : ".concat(record.value().getPayload().getOrderId()));
+        if (isNew(record.value().getPayload().getEmail())){
+            this.insertNew(record.value().getPayload().getEmail());
         }
         System.out.println("------------------------------------------");
     }
